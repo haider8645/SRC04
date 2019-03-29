@@ -3,8 +3,10 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:\\\\Users\\\\mlodhi\\\\AppData\\\\Local\\\\Arduino15\\\\packages\\\\esp32\\\\tools\\\\**",
-                "C:\\\\Users\\\\mlodhi\\\\AppData\\\\Local\\\\Arduino15\\\\packages\\\\esp32\\\\hardware\\\\esp32\\\\1.0.1\\\\**"
+                "C:\\Users\\mlodhi\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**",
+                "C:\\Users\\mlodhi\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.1\\**",
+                "C:\\dev\\sketches\\libraries\\StateMachine"
+
             ],
             "forcedInclude": [],
             "intelliSenseMode": "msvc-x64",
