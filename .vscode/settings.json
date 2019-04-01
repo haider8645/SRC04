@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "cstddef": "cpp",
+        "algorithm": "cpp",
+        "utility": "cpp"
+    }
+}

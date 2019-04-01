@@ -5,7 +5,8 @@
             "includePath": [
                 "C:\\Users\\mlodhi\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**",
                 "C:\\Users\\mlodhi\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.1\\**",
-                "C:\\dev\\sketches\\libraries\\StateMachine"
+                "C:\\dev\\sketches\\libraries\\StateMachine",
+                "C:\\dev\\sketches\\libraries\\Filters"
 
             ],
             "forcedInclude": [],

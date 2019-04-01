@@ -1,4 +1,7 @@
+#include <algorithm>
 #include <state_machine.h>
+#include <moving_average_filter.h>
+#include <median_filter.h>
 
 #define LED_INDICATOR_CAR_DETECTION   13
 #define TRIG_PIN_ARRIVE               14
@@ -8,12 +11,21 @@
 
 #define DETECTION_UPPER_THRESHOLD 0.5 // in meters
 #define DETECTION_LOWER_THRESHOLD 0.2  
+
+#define MINIMUM_DETECTION_DISTANCE 0.0// in meters
+#define MAXIMUM_DETECTION_DISTANCE 4.0
  
 //const unsigned int MAX_DIST = 23323;
 
 StateMachine sm;
 StateMachine::Event sensor_arrive_event = StateMachine::Event::UNDEFINED;
 StateMachine::Event sensor_leave_event  = StateMachine::Event::UNDEFINED;
+
+MovingAverageFilter maf_arrive(5);
+MovingAverageFilter maf_leave(5);
+
+MedianFilter mf_arrive(3);
+MedianFilter mf_leave(3);
 
 bool sensor_arrive_last_state     = LOW;
 bool sensor_arrive_current_state  = LOW;
@@ -56,7 +68,13 @@ float getDistance(int pin_trig, int pin_echo)
   // are found in the datasheet, and calculated from the assumed speed 
   //of sound in air at sea level (~340 m/s).
   distance = pulse_width * 0.00017;
-  return distance;
+
+  if (distance >= MAXIMUM_DETECTION_DISTANCE)
+    distance = MAXIMUM_DETECTION_DISTANCE;
+  else if (distance <= MINIMUM_DETECTION_DISTANCE)
+    distance = MINIMUM_DETECTION_DISTANCE;
+  
+  return distance;//clamp(distance,MINIMUM_DETECTION_DISTANCE,MAXIMUM_DETECTION_DISTANCE);
 }
 
 
@@ -66,7 +84,25 @@ void loop()
   distance_arrive = getDistance(TRIG_PIN_ARRIVE,ECHO_PIN_ARRIVE);
   distance_leave  = getDistance(TRIG_PIN_LEAVE,ECHO_PIN_LEAVE);
 
-   if (distance_arrive >= DETECTION_LOWER_THRESHOLD && distance_arrive <= DETECTION_UPPER_THRESHOLD)
+  mf_arrive.newValue(distance_arrive);
+  mf_leave.newValue(distance_leave);
+
+  maf_arrive.newValue(mf_arrive.getResult());
+  maf_leave.newValue(mf_leave.getResult());
+
+  maf_arrive.newValue(distance_arrive);
+  maf_leave.newValue(distance_leave);
+
+  float distance_arrive_filtered  = maf_arrive.getResult();
+  float distance_leave_filtered   = maf_leave.getResult();
+
+  Serial.print("Distance arrive filtered: ");
+  Serial.println(distance_arrive_filtered);
+
+  Serial.print("Distance leave filtered: ");
+  Serial.println(distance_leave_filtered);
+ 
+   if (distance_arrive_filtered >= DETECTION_LOWER_THRESHOLD && distance_arrive_filtered <= DETECTION_UPPER_THRESHOLD)
    {
        sensor_arrive_current_state = HIGH;
    }
@@ -75,7 +111,7 @@ void loop()
        sensor_arrive_current_state = LOW;
    }
    
-   if (distance_leave >= DETECTION_LOWER_THRESHOLD && distance_leave <= DETECTION_UPPER_THRESHOLD)
+   if (distance_leave_filtered >= DETECTION_LOWER_THRESHOLD && distance_leave_filtered <= DETECTION_UPPER_THRESHOLD)
    {
        sensor_leave_current_state = HIGH;
    }
