@@ -10,11 +10,11 @@
 #define ECHO_PIN_LEAVE                27
 
 #define DETECTION_UPPER_THRESHOLD 0.5 // in meters
-#define DETECTION_LOWER_THRESHOLD 0.2  
+#define DETECTION_LOWER_THRESHOLD 0.2
 
 #define MINIMUM_DETECTION_DISTANCE 0.0// in meters
 #define MAXIMUM_DETECTION_DISTANCE 4.0
- 
+
 //const unsigned int MAX_DIST = 23323;
 
 StateMachine sm;
@@ -58,14 +58,14 @@ float getDistance(int pin_trig, int pin_echo)
   // Measure how long the echo pin was held high (pulse width)
   // Note: the micros() counter will overflow after ~70 min
   t1 = micros();
-  
+
   while ( digitalRead(pin_echo) == 1);
   t2 = micros();
   // Wait for pulse on echo pin
   pulse_width = t2 - t1;
-  
+
   // Calculate distance in centimeters and meters. The constants
-  // are found in the datasheet, and calculated from the assumed speed 
+  // are found in the datasheet, and calculated from the assumed speed
   //of sound in air at sea level (~340 m/s).
   distance = pulse_width * 0.00017;
 
@@ -73,7 +73,7 @@ float getDistance(int pin_trig, int pin_echo)
     distance = MAXIMUM_DETECTION_DISTANCE;
   else if (distance <= MINIMUM_DETECTION_DISTANCE)
     distance = MINIMUM_DETECTION_DISTANCE;
-  
+
   return distance;//clamp(distance,MINIMUM_DETECTION_DISTANCE,MAXIMUM_DETECTION_DISTANCE);
 }
 
@@ -90,9 +90,6 @@ void loop()
   maf_arrive.newValue(mf_arrive.getResult());
   maf_leave.newValue(mf_leave.getResult());
 
-  maf_arrive.newValue(distance_arrive);
-  maf_leave.newValue(distance_leave);
-
   float distance_arrive_filtered  = maf_arrive.getResult();
   float distance_leave_filtered   = maf_leave.getResult();
 
@@ -101,7 +98,7 @@ void loop()
 
   Serial.print("Distance leave filtered: ");
   Serial.println(distance_leave_filtered);
- 
+
    if (distance_arrive_filtered >= DETECTION_LOWER_THRESHOLD && distance_arrive_filtered <= DETECTION_UPPER_THRESHOLD)
    {
        sensor_arrive_current_state = HIGH;
@@ -110,7 +107,7 @@ void loop()
    {
        sensor_arrive_current_state = LOW;
    }
-   
+
    if (distance_leave_filtered >= DETECTION_LOWER_THRESHOLD && distance_leave_filtered <= DETECTION_UPPER_THRESHOLD)
    {
        sensor_leave_current_state = HIGH;
@@ -139,7 +136,7 @@ void loop()
     else if (sensor_leave_last_state == HIGH && sensor_leave_current_state == LOW)
         sensor_leave_event = StateMachine::Event::SENSOR_HIGH_TO_LOW;
     else
-        sensor_leave_event = StateMachine::Event::SENSOR_NO_CHANGE;    
+        sensor_leave_event = StateMachine::Event::SENSOR_NO_CHANGE;
 
     sm.SetEvent(sensor_arrive_event,sensor_leave_event);
     sm.SetSensorState(static_cast<StateMachine::SensorState>(sensor_arrive_current_state),static_cast<StateMachine::SensorState>(sensor_leave_current_state));
@@ -149,7 +146,7 @@ void loop()
     Serial.print("Current State of SM: ");
     Serial.println(static_cast<int>(now));
 
-    
+
     if (state_changed)
       {
         //if state has changed then check the following
@@ -164,18 +161,18 @@ void loop()
             Serial.println("Car detected");
             digitalWrite(LED_INDICATOR_CAR_DETECTION,HIGH);
             delay(500);
-            digitalWrite(LED_INDICATOR_CAR_DETECTION,LOW);   
+            digitalWrite(LED_INDICATOR_CAR_DETECTION,LOW);
          }
       }
-    
-    
+
+
     //save sensor values for next iteration
     sensor_arrive_last_state = sensor_arrive_current_state;
     sensor_leave_last_state = sensor_leave_current_state;
- 
+
 
 
   // Wait at least 60ms before next measurement
   delay(60);
-	
+
 }
